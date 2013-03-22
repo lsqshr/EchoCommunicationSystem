@@ -29,7 +29,7 @@ int main(void)
     struct sockaddr_in my_addr, cli_addr;
     int sockfd, i; 
     socklen_t slen=sizeof(cli_addr);
-    char buf[BUFLEN];
+    char readbuff[BUFLEN],sendbuff[BUFLEN];
     long first_counter,second_counter;
 
     if ((sockfd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP))==-1)
@@ -52,25 +52,38 @@ int main(void)
     while(1)
     {
         // listen to the port and read the message in readbuffer
-        if (recvfrom(sockfd, readbuf, BUFLEN, 0, (struct sockaddr*)&cli_addr, &slen)==-1)
+        if (recvfrom(sockfd, readbuff, BUFLEN, 0, (struct sockaddr*)&cli_addr, &slen) == -1)
+        {
             err("recvfrom()");
-        printf("Received packet from %s:%d\nData: %s\n\n",
-               inet_ntoa(cli_addr.sin_addr), ntohs(cli_addr.sin_port), readbuf);
+        }
+        printf("Message received: %s\n",readbuff);
+        //printf("Received packet from %s:%d\nData: %s\n\n",
+        //       inet_ntoa(cli_addr.sin_addr), ntohs(cli_addr.sin_port), readbuff);
 
         // if the message was duplicated, discard it 
-        if( counter%2 == 1 ){
+        /*if( counter%2 == 1 )
+        {
             continue;
-        }
+        }*/
         // send an ACK message to the client 
-        sendbuf[0] = ACK;
-        if (sendto(sockfd, sendbuf, BUFLEN, 0, (struct sockaddr*)&cli_addr, &slen)==-1)
-            err("sendto()");  
+        sendbuff[0] = ACK;
+        printf("Before sending ACK\n");
+        if (sendto(sockfd, sendbuff, BUFLEN, 0, (struct sockaddr*)&cli_addr, slen) == -1)
+        {
+            err("sendto()"); 
+        } 
+        printf("ACK sent\n");
 
-        get_sent_buff(readbuffer,sendbuf);
+        get_sent_buff(readbuff,sendbuff);
 
         // send readbuffer back to the client
-        if (sendto(sockfd, sendbuf, BUFLEN, 0, (struct sockaddr*)&cli_addr, &slen)==-1)
+        if (sendto(sockfd, sendbuff, BUFLEN, 0, (struct sockaddr*)&cli_addr, slen) == -1)
+        {
             err("sendto()");  
+        }
+        printf("Response sent! buffer: %s\n",sendbuff);
+
+        counter++;
     }
 
     close(sockfd);

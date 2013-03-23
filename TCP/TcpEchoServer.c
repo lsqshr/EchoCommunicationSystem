@@ -7,25 +7,16 @@
 #include <errno.h>
 #include <string.h>
 #include <sys/types.h>
-#include <pthread.h>
-#include "./UdpSend.h"
 
-#define BUFFSIZE 5000
-#define MAXLINE 5000
-#define PORT 20002
-#define UDP_SERVADDR "127.0.0.1"
-#define UDP_SERV_PORT 20001
-
+#define BUFFSIZE 1023
+#define MAXLINE 1023
+#define PORT 20001
 
 // This function can be modified due to the different
 // behaviour this server is gonna do to response to the request msg
-void get_sent_buff( char* readbuff, char* sendbuff )
+void get_sent_buff( char* read, char* send )
 {
-    strcpy(sendbuff,readbuff);
-}
-
-void get_udpsent_buff(char* readbuff,char* sendbuff){
-    strcpy(sendbuff,readbuff);
+    strcpy(send,read);
 }
 
 int main(int argc, char *argv[])
@@ -37,7 +28,6 @@ int main(int argc, char *argv[])
     char sendbuff[BUFFSIZE]; // buffer for sending msg 
     char readbuff[BUFFSIZE];
     int readsize = 0;
-    int send_succeed = 0;
 
     listenfd = socket(AF_INET, SOCK_STREAM, 0);
     memset(&serv_addr, '0', sizeof(serv_addr));
@@ -71,23 +61,11 @@ int main(int argc, char *argv[])
             }
             else{
                 printf("buffer received: %s\n",readbuff);
-                // send buffer by UDP to UDP echo server
-                get_udpsent_buff(readbuff,sendbuff);
-                send_succeed = udp_send(sendbuff, 
-                                        UDP_SERVADDR, 
-                                        UDP_SERV_PORT, 
-                                        readbuff,
-                                        BUFFSIZE);
-                printf("udp_send returns %s\n",sendbuff);
             }
 
             // prepare the send buffer
-            if(send_succeed)
-            {
-                get_sent_buff(readbuff,sendbuff); 
-                write(connfd, sendbuff, strlen(sendbuff)); //response to the request by sending connfd
-                printf("Response : %s\n",sendbuff);
-            }
+            get_sent_buff(readbuff,sendbuff); 
+            write(connfd, sendbuff, strlen(sendbuff)); //response to the request by sending connfd
         }
      }
 }

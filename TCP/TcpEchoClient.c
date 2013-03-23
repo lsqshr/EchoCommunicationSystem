@@ -9,8 +9,8 @@
 #include <errno.h>
 #include <arpa/inet.h> 
 
-#define BUFFSIZE 5000
-#define PORT 20002
+#define BUFFSIZE 1023
+#define SERVERPORT 20001
 #define LOCALHOST "127.0.0.1"
 
 
@@ -30,7 +30,7 @@ int main(int argc, char *argv[])
     memset(&serv_addr, '0', sizeof(serv_addr)); 
 
     serv_addr.sin_family = AF_INET;
-    serv_addr.sin_port = htons(PORT);
+    serv_addr.sin_port = htons(20001);
 
     if(inet_aton(LOCALHOST, &serv_addr.sin_addr)<=0)
     {

@@ -11,7 +11,7 @@
 #define BUFLEN 5000
 #define PORT 20001
 #define REMOTEADDRESS "127.0.0.1"
-#define SLEEPTIME 3000
+#define SLEEPTIME 3000 // in miliseconds
 #define ACK -1
 #define MAXLINE 5000
 
@@ -24,7 +24,7 @@ void err(char *s)
 
 // start timer thread
 void start_timer(pthread_t* timer_thread_p,
-                 pthread_t recv_thread,
+                 pthread_t* recv_thread_p,
                  pthread_attr_t attr)
 {
     printf("prepare timer thread\n");
@@ -33,19 +33,23 @@ void start_timer(pthread_t* timer_thread_p,
         printf("in timer\n");
         int interval = SLEEPTIME/1000;
         for(int i = 0 ; i<interval ; i++){
-            sleep(1000);
             printf("timer count 1 second\n");
+            sleep(1);
         }
 
         //if the recv_thread is running, kill it   
+        printf("trying to kill recv thread: recv thread id:%d\n",
+            *((pthread_t*)recv_thread_p));
         pthread_cancel(*((pthread_t*)recv_thread_p)); 
+        printf("killed recv thread\n");
     }
 
-    pthread_create(timer_thread_p,&attr,timer_sleep,(void*)&recv_thread);
+    pthread_create(timer_thread_p,&attr,timer_sleep,(void*)recv_thread_p);
+    printf("timer thread id after start : %d\n",*timer_thread_p);
 }
 
 struct pattr{
-    pthread_t timer_thr;
+    pthread_t *timer_thr_p;
     char* readbuff;
     int* acked_p;
     int sock;
@@ -53,8 +57,8 @@ struct pattr{
 };
 
 // start thread to try to receive ACK msg from server
-struct pattr* wait_for_server(pthread_t recv_thread,
-                     pthread_t timer_thread,
+struct pattr* wait_for_server(pthread_t* recv_thread_p,
+                     pthread_t* timer_thread_p,
                      pthread_attr_t attr,
                      char* readbuff,
                      int* acked_p,
@@ -64,7 +68,7 @@ struct pattr* wait_for_server(pthread_t recv_thread,
 
     struct pattr* attrs = (struct pattr*) malloc(sizeof(struct pattr));
 
-    attrs->timer_thr = timer_thread;
+    attrs->timer_thr_p = timer_thread_p;
     attrs->readbuff = readbuff;
     attrs->acked_p = acked_p;
     attrs->sock = sock;
@@ -80,12 +84,15 @@ struct pattr* wait_for_server(pthread_t recv_thread,
             // received ACK from the UDP server  
             *(attr->acked_p) = 1;
             // kill the timer_thr
-            printf("ready to kill timer\n");
-            pthread_cancel(attr->timer_thr);
+            printf("ready to kill timer,timer id: %d\n",*(attr->timer_thr_p));
+            pthread_cancel(*(attr->timer_thr_p));
         }
+        printf("after kill timer\n");
     }
+
     //start the recv_thread 
-    pthread_create(&recv_thread,&attr,recv_msg,(void*)attrs);
+    pthread_create(recv_thread_p,&attr,recv_msg,(void*)attrs);
+    printf("recv thread id after start : %d\n",*(recv_thread_p));
 
     return attrs;
 }
@@ -99,6 +106,7 @@ int main(int argc, char** argv)
     void* timer_status;
     void* receive_status;
     pthread_attr_t attr;
+    pthread_t timer_thread,recv_thread;
     struct pattr *recv_thread_attr;// to free memory of recv thread 
     int acked = 0; // flag for if an ack msg has been received
 
@@ -136,17 +144,16 @@ int main(int argc, char** argv)
             if (sendto(sockfd, sendbuff, BUFLEN, 0, (struct sockaddr*)&serv_addr, slen)==-1)
                 err("sendto()");
             // The following one of the two threads will kill the other one, when it get through
-            pthread_t timer_thread,recv_thread;
             pthread_attr_init(&attr);
             pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
 
             // start a timer in another thread, to count 3 seconds,
-            start_timer(&timer_thread,recv_thread,attr);
+            start_timer(&timer_thread,&recv_thread,attr);
 
             // start a thread to wait for the server's msg
             // try to receive the ack msg
-            recv_thread_attr = wait_for_server(recv_thread,
-                                               timer_thread,
+            recv_thread_attr = wait_for_server(&recv_thread,
+                                               &timer_thread,
                                                attr,
                                                readbuff,
                                                &acked,
@@ -155,17 +162,20 @@ int main(int argc, char** argv)
 
             //wait till two threads both finish
             pthread_attr_destroy(&attr);
+            printf("value of timer thread id:%d\n",timer_thread);
             pthread_join(timer_thread,&timer_status);
+            printf("timer joined\n");
+            printf("value of recv thread id:%d\n",recv_thread);
             pthread_join(recv_thread,&receive_status);
+            printf("recv joined\n");
             printf("two threads joined\n");
             free(recv_thread_attr);
 
-            // receive the real data
-            if (recvfrom(sockfd, readbuff, BUFLEN, 0, (struct sockaddr*)&serv_addr,&slen)==-1)
-                err("recvfrom()"); 
-
-
         }while(!acked);//while we receive the ACK msg from server
+
+        // receive the real data
+        if (recvfrom(sockfd, readbuff, BUFLEN, 0, (struct sockaddr*)&serv_addr,&slen)==-1)
+            err("recvfrom()"); 
         acked = 0; // reset flag acked
 
         printf("%s\n",readbuff);

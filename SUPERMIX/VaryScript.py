@@ -4,7 +4,7 @@ import os
 import threading
 import time
 
-TOTALDATASIZE = 0.1 # in megabytes
+TOTALDATASIZE = 10 # in megabytes
 BUFFSIZE = 5120 # in bytes
 LOSDUPRATES = [(0.05,0.05),(0.15,0.15),(0.30,0.30),(0.50,0.50),(0.80,0.80),]
 
@@ -51,7 +51,7 @@ for i in range(0,listlen):
 
 	#run midserver
 	def run_mid_serv(loserate,duprate):
-		os.system("./midserver " + str(loserate) + ' ' + str(duprate)+ '' + str(20002+i))
+		os.system("./midserver " + str(loserate) + ' ' + str(duprate)+ ' ' + str(20002+i))
 
 	mid_serv_thr = threading.Thread(name="midserv",target=run_mid_serv,args=(loserate,duprate))
 	mid_serv_thr.setDaemon(True)
@@ -59,7 +59,7 @@ for i in range(0,listlen):
 
 	#run client
 	tick1 = time.time()
-	os.system("./tcpclient " + str(times) + (20002+i))
+	os.system("./tcpclient " + str(times) + ' ' + str(20002+i))
 	tick2 = time.time()
 	duration = tick2 - tick1
 	

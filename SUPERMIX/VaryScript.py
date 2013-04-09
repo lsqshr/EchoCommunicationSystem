@@ -4,9 +4,12 @@ import os
 import threading
 import time
 
-TOTALDATASIZE = 10 # in megabytes
-BUFFSIZE = 5120 # in bytes
+TOTALDATASIZE = 10 # in Mb
+BUFFSIZEB = 5000 # in b
+BUFFSIZEBYTE = BUFFSIZEB/8
 LOSDUPRATES = [(0.05,0.05),(0.15,0.15),(0.30,0.30),(0.50,0.50),(0.80,0.80),]
+#LOSDUPRATES = [(0.80,0.80),]
+
 
 def compile(sources,executable,libs):
 	result = "gcc -w -std=c99"
@@ -38,7 +41,7 @@ udp_serv_thr.start()
 #open file for writing
 f = open("statistics.txt","w")
 
-times = TOTALDATASIZE * 1024 * 1024 / BUFFSIZE
+times = TOTALDATASIZE * 1000 * 1000 / BUFFSIZEB
 
 listlen = len(LOSDUPRATES)
 for i in range(0,listlen):
@@ -47,7 +50,8 @@ for i in range(0,listlen):
 	duprate = LOSDUPRATES[i][1]
 
 	f.write("Lose Rate: " + str(loserate) + '\tDup Rate: ' + str(duprate) + '\n')
-	f.write("Data Size: " + str(TOTALDATASIZE) + 'MegaBytes\n')
+	f.write("Data Size: " + str(TOTALDATASIZE) + 'Mb\n')
+	f.write("Buffer Size: " + str(BUFFSIZEB) + 'bit\n')
 
 	#run midserver
 	def run_mid_serv(loserate,duprate):
@@ -57,6 +61,7 @@ for i in range(0,listlen):
 	mid_serv_thr.setDaemon(True)
 	mid_serv_thr.start()
 
+	time.sleep(3)
 	#run client
 	tick1 = time.time()
 	os.system("./tcpclient " + str(times) + ' ' + str(20002+i))

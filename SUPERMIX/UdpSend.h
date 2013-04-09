@@ -4,6 +4,16 @@ int udp_send(char* sendbuff,
             char* UDP_SERVADDR, 
             short UDP_SERV_PORT, 
             char* readbuff,
-            int BUFFSIZE);
+            int BUFFSIZE,
+            double loserate,
+            double duprate,
+            double losevent,
+            double dupevent
+            );
+
+void randomize();
+
+double get_random_rate();
+
 
 #endif

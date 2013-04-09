@@ -1,0 +1,8 @@
+TCP: tcp client and server. Done for (1)
+UDP: udp client and server. Done for (2)
+SUPERMIX: tcp client transfers data to tcp server and tcp server opens a udp socket and transfers the data to udp server. vice versa
+          I made a script to automatically test the whole thing. 
+          Please run 'python SUPERMIX/VaryScript'
+          This script will compile the client and two servers and run them in different processes. Also it varies the lose rate and duplication rate one by one, and tracks the time of transfering.
+          The result of statistics will be stored in SUPERMIX/statistics.txt.
+	  I made two charts of the data I captured, which can also be found under SUPERMIX/.

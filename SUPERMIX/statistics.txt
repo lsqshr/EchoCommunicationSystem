@@ -1,0 +1,30 @@
+Sample 1:
+Lose Rate: 0.05	Dup Rate: 0.05
+Data Size: 10Mb
+Buffer Size: 5000bit
+Duration: 262.445343971
+---------------------------------
+Sample 2:
+Lose Rate: 0.15	Dup Rate: 0.15
+Data Size: 10Mb
+Buffer Size: 5000bit
+Duration: 893.039417982
+---------------------------------
+Sample 3:
+Lose Rate: 0.3	Dup Rate: 0.3
+Data Size: 10Mb
+Buffer Size: 5000bit
+Duration: 1549.04213309
+---------------------------------
+Sample 4:
+Lose Rate: 0.5	Dup Rate: 0.5
+Data Size: 10Mb
+Buffer Size: 5000bit
+Duration: 1999.03830814
+---------------------------------
+Sample 5:
+Lose Rate: 0.8	Dup Rate: 0.8
+Data Size: 10Mb
+Buffer Size: 5000bit
+Duration: 1201.992553
+---------------------------------

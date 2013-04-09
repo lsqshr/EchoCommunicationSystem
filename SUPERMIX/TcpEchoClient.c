@@ -9,13 +9,19 @@
 #include <errno.h>
 #include <arpa/inet.h> 
 
-#define BUFFSIZE 5000
-#define PORT 20002
+#define BUFFSIZE 625
+//#define PORT 20002
 #define LOCALHOST "127.0.0.1"
 
 
 int main(int argc, char *argv[])
 {
+    if(argc != 3 ){
+        printf("Usage: <times of sending package> <port>\n");
+        exit(1);
+    }
+
+    int PORT = atoi(argv[2]);
     int sockfd = 0, readsize = 0;
     char recvbuff[BUFFSIZE], sendbuff[BUFFSIZE];
     struct sockaddr_in serv_addr; 
@@ -44,29 +50,35 @@ int main(int argc, char *argv[])
        return 1;
     } 
 
-
-    while(1)
+    for(int i = 0; i < atoi(argv[1]); i++)
     {   
+        printf("It is the %d th msg\n",i);
         //get string to send from terminal
-        printf("New Message To Echo: ");
-        fgets(sendbuff,BUFFSIZE,stdin);
+        /*printf("New Message To Echo: ");
+        fgets(sendbuff,BUFFSIZE,stdin);*/
+        memset(sendbuff,1,BUFFSIZE);
+        sendbuff[0] = i;
+        /* 
         if(strlen(sendbuff) == 0 ){
             printf("Sorry, you are trying to send an empty message\n");
             break;  
         }
-
+        */
         //send the message to server
-        if( send(sockfd , sendbuff , strlen(sendbuff) , 0) < 0)
+        if( send(sockfd , sendbuff , BUFFSIZE , 0) < 0)
         {
             puts("Send failed");
             return 1;
         }
+        printf("new buffer sent\n");
 
-        readsize = recv(sockfd, recvbuff, sizeof(recvbuff)-1,0);
+        readsize = recv(sockfd, recvbuff, BUFFSIZE,0);
+        
         if( readsize > 0 )
         {
-            recvbuff[readsize] = 0;
-            printf("%s\n",recvbuff);
+            /*recvbuff[readsize] = 0;
+            printf("%s\n",recvbuff);*/
+            printf("Response Received\n");
         }
         else{
             break;

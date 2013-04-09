@@ -7,7 +7,7 @@
 #include <stdlib.h> 
 #include <string.h>
 
-#define BUFLEN 5000
+#define BUFLEN 625 
 #define PORT 20001
 #define ACK -1
 
@@ -50,21 +50,14 @@ int main(void)
     int counter = 0;
     //the server discards every second message
     while(1)
-    {
+    {   memset(readbuff,0,sizeof(readbuff));
         // listen to the port and read the message in readbuffer
         if (recvfrom(sockfd, readbuff, BUFLEN, 0, (struct sockaddr*)&cli_addr, &slen) == -1)
         {
             err("recvfrom()");
         }
-        printf("Message received: %s\n",readbuff);
-        //printf("Received packet from %s:%d\nData: %s\n\n",
-        //       inet_ntoa(cli_addr.sin_addr), ntohs(cli_addr.sin_port), readbuff);
 
-        // if the message was duplicated, discard it 
-        /*if( counter%2 == 1 )
-        {
-            continue;
-        }*/
+        //printf("Message received: %s\n",readbuff);
         // send an ACK message to the client 
         sendbuff[0] = ACK;
         printf("Before sending ACK\n");
@@ -81,7 +74,7 @@ int main(void)
         {
             err("sendto()");  
         }
-        printf("Response sent! buffer: %s\n",sendbuff);
+        //printf("Response sent! buffer: %s\n",sendbuff);
 
         counter++;
     }
